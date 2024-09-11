@@ -1,6 +1,6 @@
 # FountainAI: Designing a Scalable AI-Driven Storytelling System
 
-> Managing AWS, Kong Gateway, and OpenSearch with OpenAPI as the Single Source of Truth
+> Managing AWS, Kong Gateway, and OpenSearch with OpenAPI as the Single Source of Truth ...well, almost :)
 
 ## Introduction
 
