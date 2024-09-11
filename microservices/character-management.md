@@ -2,7 +2,7 @@
 openapi: 3.1.0
 info:
   title: Character Management API
-  description: API for managing characters in the FountainAI system, integrated directly with OpenSearch.
+  description: API for managing characters, actions, and paraphrases in the FountainAI system, integrated directly with OpenSearch.
   version: 1.0.0
 servers:
   - url: https://characters.fountain.coach
@@ -300,6 +300,360 @@ paths:
         methods: ['DELETE']
         paths: ['/characters/_doc/{characterId}/paraphrases/_doc/{paraphraseId}']
         service: 'opensearch-service'
+  /_doc/{characterId}/actions/_search:
+    post:
+      summary: Retrieve actions for a character
+      description: Queries the OpenSearch index for actions linked to a specific character.
+      operationId: searchActions
+      parameters:
+        - name: characterId
+          in: path
+          required: true
+          description: The ID of the character whose actions are being queried.
+          schema:
+            type: string
+      requestBody:
+        description: The OpenSearch query object for actions.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpenSearchQuery'
+      responses:
+        '200':
+          description: A list of actions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Action'
+      x-kong-route:
+        methods: ['POST']
+        paths: ['/characters/_doc/{characterId}/actions/_search']
+        service: 'opensearch-service'
+  /_doc/{characterId}/actions/_doc:
+    post:
+      summary: Create an action for a character
+      description: Adds a new action document to the OpenSearch index linked to a specific character.
+      operationId: createAction
+      parameters:
+        - name: characterId
+          in: path
+          required: true
+          description: The ID of the character to which the action is linked.
+          schema:
+            type: string
+      requestBody:
+        description: Action data to be added.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionInput'
+      responses:
+        '201':
+          description: Action created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+      x-kong-route:
+        methods: ['POST']
+        paths: ['/characters/_doc/{characterId}/actions/_doc']
+        service: 'opensearch-service'
+  /_doc/{characterId}/actions/_doc/{actionId}:
+    get:
+      summary: Retrieve an action by ID
+      description: Retrieves a specific action document from the OpenSearch index by its ID.
+      operationId: getActionById
+      parameters:
+        - name: characterId
+          in: path
+          required: true
+          description: The ID of the character whose action is being retrieved.
+          schema:
+            type: string
+        - name: actionId
+          in: path
+          required: true
+          description: The ID of the action to retrieve.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Action document retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+        '404':
+          description: Action not found
+      x-kong-route:
+        methods: ['GET']
+        paths: ['/characters/_doc/{characterId}/actions/_doc/{actionId}']
+        service: 'opensearch-service'
+  /_doc/{characterId}/actions/_doc/{actionId}:
+    put:
+      summary: Update an action by ID
+      description: Updates an existing action document in the OpenSearch index.
+      operationId: updateActionById
+      parameters:
+        - name: characterId
+          in: path
+          required: true
+          description: The ID of the character whose action is being updated.
+          schema:
+            type: string
+        - name: actionId
+          in: path
+          required: true
+          description: The ID of the action to update.
+          schema:
+            type: string
+      requestBody:
+        description: The new action data.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionInput'
+      responses:
+        '200':
+          description: Action updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateResponse'
+        '404':
+          description: Action not found
+      x-kong-route:
+        methods: ['PUT']
+        paths: ['/characters/_doc/{characterId}/actions/_doc/{actionId}']
+        service: 'opensearch-service'
+  /_doc/{characterId}/actions/_doc/{actionId}:
+    delete:
+      summary: Delete an action by ID
+      description: Deletes an action document from the OpenSearch index by its ID.
+      operationId: deleteActionById
+      parameters:
+        - name: characterId
+          in: path
+          required: true
+          description: The ID of the character whose action is being deleted.
+          schema:
+            type: string
+        - name: actionId
+          in: path
+          required: true
+          description: The ID of the action to delete.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Action deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+        '404':
+          description: Action not found
+      x-kong-route:
+        methods: ['DELETE']
+        paths: ['/characters/_doc/{characterId}/actions/_doc/{actionId}']
+        service: 'opensearch-service'
+  /_doc/{characterId}/actions/{actionId}/paraphrases/_search:
+    post:
+      summary: Retrieve paraphrases for an action
+      description: Queries the OpenSearch index for paraphrases linked to a specific action.
+      operationId: searchActionParaphrases
+      parameters:
+        - name: characterId
+          in: path
+          required: true
+          description: The ID of the character whose action paraphrases are being queried.
+          schema:
+            type: string
+        - name: actionId
+          in: path
+          required: true
+          description: The ID of the action whose paraphrases are being queried.
+          schema:
+            type: string
+      requestBody:
+        description: The OpenSearch query object for paraphrases.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpenSearchQuery'
+      responses:
+        '200':
+          description: A list of action paraphrases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Paraphrase'
+      x-kong-route:
+        methods: ['POST']
+        paths: ['/characters/_doc/{characterId}/actions/{actionId}/paraphrases/_search']
+        service: 'opensearch-service'
+  /_doc/{characterId}/actions/{actionId}/paraphrases/_doc:
+    post:
+      summary: Create a paraphrase for an action
+      description: Adds a new paraphrase document to the OpenSearch index linked to a specific action.
+      operationId: createActionParaphrase
+      parameters:
+        - name: characterId
+          in: path
+          required: true
+          description: The ID of the character to which the action paraphrase is linked.
+          schema:
+            type: string
+        - name: actionId
+          in: path
+          required: true
+          description: The ID of the action to which the paraphrase is linked.
+          schema:
+            type: string
+      requestBody:
+        description: Paraphrase data to be added.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParaphraseInput'
+      responses:
+        '201':
+          description: Action paraphrase created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+      x-kong-route:
+        methods: ['POST']
+        paths: ['/characters/_doc/{characterId}/actions/{actionId}/paraphrases/_doc']
+        service: 'opensearch-service'
+  /_doc/{characterId}/actions/{actionId}/paraphrases/_doc/{paraphraseId}:
+    get:
+      summary: Retrieve an action paraphrase by ID
+      description: Retrieves a specific paraphrase document from the OpenSearch index linked to an action by its ID.
+      operationId: getActionParaphraseById
+      parameters:
+        - name: characterId
+          in: path
+          required: true
+          description: The ID of the character whose action paraphrase is being retrieved.
+          schema:
+            type: string
+        - name: actionId
+          in: path
+          required: true
+          description: The ID of the action whose paraphrase is being retrieved.
+          schema:
+            type: string
+        - name: paraphraseId
+          in: path
+          required: true
+          description: The ID of the paraphrase to retrieve.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Action paraphrase document retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Paraphrase'
+        '404':
+          description: Paraphrase not found
+      x-kong-route:
+        methods: ['GET']
+        paths: ['/characters/_doc/{characterId}/actions/{actionId}/paraphrases/_doc/{paraphraseId}']
+        service: 'opensearch-service'
+  /_doc/{characterId}/actions/{actionId}/paraphrases/_doc/{paraphraseId}:
+    put:
+      summary: Update an action paraphrase by ID
+      description: Updates an existing paraphrase document in the OpenSearch index linked to a specific action.
+      operationId: updateActionParaphraseById
+      parameters:
+        - name: characterId
+          in: path
+          required: true
+          description: The ID of the character whose action paraphrase is being updated.
+          schema:
+            type: string
+        - name: actionId
+          in: path
+          required: true
+          description: The ID of the action whose paraphrase is being updated.
+          schema:
+            type: string
+        - name: paraphraseId
+          in: path
+          required: true
+          description: The ID of the paraphrase to update.
+          schema:
+            type: string
+      requestBody:
+        description: The new paraphrase data.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParaphraseInput'
+      responses:
+        '200':
+          description: Action paraphrase updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateResponse'
+        '404':
+          description: Paraphrase not found
+      x-kong-route:
+        methods: ['PUT']
+        paths: ['/characters/_doc/{characterId}/actions/{actionId}/paraphrases/_doc/{paraphraseId}']
+        service: 'opensearch-service'
+  /_doc/{characterId}/actions/{actionId}/paraphrases/_doc/{paraphraseId}:
+    delete:
+      summary: Delete an action paraphrase by ID
+      description: Deletes an action paraphrase document from the OpenSearch index by its ID.
+      operationId: deleteActionParaphraseById
+      parameters:
+        - name: characterId
+          in: path
+          required: true
+          description: The ID of the character whose action paraphrase is being deleted.
+          schema:
+            type: string
+        - name: actionId
+          in: path
+          required: true
+          description: The ID of the action whose paraphrase is being deleted.
+          schema:
+            type: string
+        - name: paraphraseId
+          in: path
+          required: true
+          description: The ID of the paraphrase to delete.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Action paraphrase deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+        '404':
+          description: Paraphrase not found
+      x-kong-route:
+        methods: ['DELETE']
+        paths: ['/characters/_doc/{characterId}/actions/{actionId}/paraphrases/_doc/{paraphraseId}']
+        service: 'opensearch-service'
 components:
   schemas:
     Character:
@@ -338,6 +692,19 @@ components:
         commentary:
           type: string
           example: "Commentary on the paraphrase"
+    Action:
+      type: object
+      properties:
+        actionId:
+          type: string
+        description:
+          type: string
+    ActionInput:
+      type: object
+      properties:
+        description:
+          type: string
+          example: "The hero saves the day"
     OpenSearchQuery:
       type: object
       properties:
