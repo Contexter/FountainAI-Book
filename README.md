@@ -12,18 +12,24 @@ The system relies on **OpenAPI** as the single source of truth for defining, dep
 
 1. **Central Sequence Service**  
    Manages the generation of sequential identifiers for core elements in the storytelling system. Every component, from scripts to characters, is assigned a unique and consistent sequence number to maintain coherence across the platform.
+[Central Sequence Service API](./microservices/central-sequence-service.md)
 
 2. **Story Factory Service**  
    Handles the creation and management of stories within the platform. This service organizes narrative elements into a structured format, ensuring stories are dynamically assembled and managed according to user inputs.
+[Story Factory API](./microservices/story-factory-service.md)
 
 3. **Session Context Service**  
    Tracks and manages the state and context of interactive storytelling sessions. It enables the system to adjust the flow of the narrative based on real-time inputs and interactions, maintaining continuity throughout the experience.
+[Session and Context Management API](./microservices/session-context-service.md)
 
 4. **Core Script Management Service**  
    Organizes and manages scripts, enabling real-time updates and editing. This service ensures that the script evolves as the story progresses, adapting to changing contexts or character interactions.
+[Core Script Management API](./microservices/core-script-management.md)
 
 5. **Character Management Service**  
    Manages the creation and development of characters, tracking traits, behaviors, and backgrounds. This service ensures characters are consistent and grow over time, adapting to the narrative flow.
+ [Character Management API](./microservices/character-management.md)
+
 
 ## OpenSearch: The Backbone of Data Continuity
 
