@@ -1,4 +1,4 @@
-### Chapter 2: Microservices Communication in FountainAI
+# Chapter 2: Microservices Communication in FountainAI
 
 FountainAI’s ability to deliver a fluid, adaptive storytelling experience relies not just on efficient communication between its microservices but also on the powerful capabilities of OpenSearch. OpenSearch is not merely a search engine—it’s a distributed system capable of handling complex queries, real-time indexing, full-text search, and advanced data analytics. The true power of FountainAI comes from its use of dynamically generated OpenSearch Query DSL, controlled by a GPT model that continuously adapts the system’s interactions in real time.
 
@@ -16,7 +16,7 @@ OpenSearch’s true power in FountainAI is its ability to handle complex, distri
 
 ---
 
-### Appendix 2: Chapter 2 Prompt
+## Appendix 2: Chapter 2 Prompt
 
 **Introduction**:  
 This chapter explores how FountainAI’s microservices communicate to deliver seamless, adaptive storytelling. Highlight the hidden complexity, where services rapidly exchange data via RESTful APIs in real time, with the **GPT model** generating OpenSearch Query DSL to orchestrate service interactions.
