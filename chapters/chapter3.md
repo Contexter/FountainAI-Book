@@ -40,4 +40,5 @@ Describe a scenario where a new endpoint is added to the Story Factory Service, 
 
 **Conclusion**:  
 Summarize Kong’s role in managing FountainAI’s API traffic, ensuring security, scalability, and consistency, while highlighting its seamless integration with OpenAPI for automated API management.
+
 ---
