@@ -1,6 +1,5 @@
-# FountainAI: Designing a Scalable AI-Driven Storytelling System
-
-> Managing AWS, Kong Gateway, and OpenSearch with OpenAPI as the Single Source of Truth ...well, almost :)
+# FountainAI
+> **Designing a Scalable AI-Driven Storytelling System**
 
 ## Introduction
 
@@ -49,5 +48,5 @@ At the core of **FountainAI** is **OpenSearch**, a distributed search and analyt
 - [Chapter 5: Deployment Strategy and Continuous Integration](chapters/chapter5.md)
 - [Chapter 6: Security and Scalability Considerations](chapters/chapter6.md)
 - [Chapter 7: Shell Scripting in FountainAI: From Automation to Code Generation](chapters/chapter7.md)
-- [Chapter 8: Case Studies: FountainAI in Action](chapters/chapter8.md)
+- [Chapter 8: Enter Ansible](chapters/chapter8.md)
 
