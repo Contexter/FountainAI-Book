@@ -1,4 +1,4 @@
-## **Chapter 7: Introduction**
+## **Chapter 7: Shell Scripting in FountainAI**
 
 **Shell scripting** has long been a cornerstone of system automation. Originating in the early days of Unix during the 1970s, it provided a deterministic way for engineers to automate repetitive tasks, manage systems, and execute commands in sequence. The shell became a universal interface, offering simplicity and flexibility while requiring only a basic command-line interface. For decades, this deterministic, step-by-step approach has made shell scripts indispensable in system control, enabling predictable and reliable management of complex environments.
 
