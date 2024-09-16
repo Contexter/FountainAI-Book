@@ -48,6 +48,6 @@ At the core of **FountainAI** is **OpenSearch**, a distributed search and analyt
 - [Chapter 4: Data Flow and Storage in OpenSearch](chapters/chapter4.md)
 - [Chapter 5: Deployment Strategy and Continuous Integration](chapters/chapter5.md)
 - [Chapter 6: Security and Scalability Considerations](chapters/chapter6.md)
-- [Chapter 7: AWS Deployment of Kong and OpenSearch (New Chapter)](chapters/chapter7.md)
+- [Chapter 7: Shell Scripting in FountainAI: From Automation to Code Generation](chapters/chapter7.md)
 - [Chapter 8: Case Studies: FountainAI in Action](chapters/chapter8.md)
 
