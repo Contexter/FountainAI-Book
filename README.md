@@ -49,4 +49,5 @@ At the core of **FountainAI** is **OpenSearch**, a distributed search and analyt
 - [Chapter 6: Security and Scalability Considerations](chapters/chapter6.md)
 - [Chapter 7: Shell Scripting in FountainAI: From Automation to Code Generation](chapters/chapter7.md)
 - [Chapter 8: Enter Ansible](chapters/chapter8.md)
+- [Chapter 9: Creating the FountainAI Deployment Blueprint Format](chapters/chapter9.md)
 
