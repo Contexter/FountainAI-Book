@@ -42,7 +42,7 @@ At the core of **FountainAI** is **OpenSearch**, a distributed search and analyt
 ## Table of Contents
 
 - [Chapter 1: FountainAI Architecture Overview](chapters/chapter1.md)
-- [Chapter 2: GPT OpenSearch QueryDSL Controller](chapters/chapter2.md)
+- [Chapter 2: GPT as OpenSearch QueryDSL Controller](chapters/chapter2.md)
 - [Chapter 3: API Management with Kong Gateway](chapters/chapter3.md)
 - [Chapter 4: Data Flow and Storage in OpenSearch](chapters/chapter4.md)
 - [Chapter 5: Deployment Strategy and Continuous Integration](chapters/chapter5.md)
