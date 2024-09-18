@@ -51,5 +51,5 @@ At the core of **FountainAI** is **OpenSearch**, a distributed search and analyt
 - [Chapter 8: Enter Ansible](chapters/chapter8.md)
 - [Chapter 9: Creating the FountainAI Deployment Blueprint Format](chapters/chapter9.md)
 - [Chapter 10: Feedback and Introspection via Custom GPT and GitHub OpenAPI](chapters/chapter10.md)
-- [Chapter 11: Building the FastAPI Proxy for the GPT Repository Controller](chapters/chapter11.md)
+- [Chapter 11: Deploying the FastAPI Proxy for the GPT Repository Controller](chapters/chapter11.md)
 
