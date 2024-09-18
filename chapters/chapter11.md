@@ -1,424 +1,249 @@
+## Chapter 11: Deploying the FastAPI Proxy for the GPT Repository Controller
 
-## Chapter 11: Building the FastAPI Proxy for the GPT Repository Controller 
+### Introduction: Extending the Feedback Loop
 
-In this chapter, we will build and deploy a **FastAPI app** that acts as a **non-destructive proxy** for the GPT model, enabling it to interact with the **FountainAI GitHub deployment repository**. This app will be committed to a **GitHub repository**, then deployed to an **AWS Lightsail** instance. We will secure it using **Let's Encrypt SSL** and configure the DNS using **Route 53** for the domain `proxy.fountain.coach`.
+In **Chapter 10**, we introduced the **custom GPT model** integrated with **GitHub’s OpenAPI** ( - actually *RestAPI* - but we wrap it into the **OpenAPI** format). This setup allows real-time monitoring and feedback on the repository’s activity. In **Chapter 11**, we will focus on deploying the **FastAPI Proxy**, which serves as the communication interface between the GPT model and the GitHub repository.
 
----
+A crucial aspect of this workflow is setting up **SSH keys** for secure communication between the **Lightsail Ubuntu machine** and **GitHub**. This setup will allow you to edit code locally, push the changes to **GitHub**, and then pull them onto the **Lightsail Ubuntu server** using the **AWS-provided shell**.
 
-### **11.1 Why Use FastAPI as a Proxy for the GPT Model?**
+The deployed FastAPI proxy can be accessed and tested here:  
+**[Deployed Proxy Server](https://proxy.fountain.coach/docs)**
 
-The **FastAPI proxy** allows the GPT model to retrieve real-time data from the **FountainAI GitHub repository** for monitoring, analysis, and introspection. The proxy will use the **GitHub API** to gather important data such as:
-1. **Repository metadata** (stars, forks, watchers, visibility).
-2. **File contents** and directory structure.
-3. **Commit history** for tracking changes over time.
-4. **Pull requests** and their statuses.
-5. **Issues** and their statuses.
-6. **Repository traffic insights** (views and clones).
-
-By using FastAPI, we can create a **scalable** and **high-performance** API proxy that generates **OpenAPI documentation** automatically, ensuring developers can easily interact with the service.
+The source code for the FastAPI proxy is available here:  
+**[FastAPI Proxy GitHub Repository](https://github.com/Contexter/fountainai-fastapi-proxy)**
 
 ---
 
-### **11.2 Full Implementation of the FastAPI Proxy App**
+### Setting Up SSH Keys for GitHub Integration
 
-In this section, we will develop the **FastAPI app** that interacts with the **GitHub API**. The app will expose **read-only endpoints**, ensuring that no destructive actions (e.g., creating or deleting files) are performed on the GitHub repository.
+#### Why SSH Keys are Needed
 
-#### **Step 1: Setting Up the FastAPI App**
+To securely pull changes from GitHub to the Ubuntu server on AWS, we will configure **SSH keys**. This ensures the Lightsail instance can communicate with GitHub securely, allowing you to **push changes from your local machine to GitHub** and **pull those changes on the Ubuntu server**.
 
-Start by creating a directory for the project:
-
-```bash
-mkdir fountainai-fastapi-proxy
-cd fountainai-fastapi-proxy
-```
-
-#### **Step 2: Create the FastAPI App Files**
-
-Create a Python file called `main.py` with the following content:
-
-```python
-from fastapi import FastAPI, HTTPException, Path
-import requests
-from typing import Optional
-
-app = FastAPI(
-    title="FountainAI GitHub Repository Controller",
-    description="A non-destructive proxy to retrieve metadata, file contents, commit history, pull requests, issues, and traffic insights from the FountainAI GitHub repository.",
-    version="1.0.0",
-    contact={
-        "name": "FountainAI Development Team",
-        "email": "support@fountainai.dev"
-    }
-)
-
-GITHUB_API_URL = "https://api.github.com"
-
-# Helper function to make requests to GitHub API
-def github_request(endpoint: str, params=None):
-    url = f"{GITHUB_API_URL}/{endpoint}"
-    headers = {
-        "Accept": "application/vnd.github.v3+json"
-    }
-    response = requests.get(url, headers=headers, params=params)
-    
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail=response.json())
-    
-    return response.json()
-
-# 1. Get Repository Information
-@app.get("/repo/{owner}/{repo}", operation_id="get_repo_info", summary="Retrieve repository metadata",
-         description="Retrieve metadata about the repository, including stars, forks, watchers, open issues, default branch, visibility (public/private), and description.")
-def get_repo_info(owner: str = Path(..., description="GitHub username or organization"), 
-                  repo: str = Path(..., description="Repository name")):
-    """
-    Retrieve repository metadata such as stars, forks, watchers, open issues, default branch, visibility, and description.
-    """
-    endpoint = f"repos/{owner}/{repo}"
-    return github_request(endpoint)
-
-# 2. List Repository Contents
-@app.get("/repo/{owner}/{repo}/contents", operation_id="list_repo_contents", summary="List repository contents",
-         description="List the files and directories in the repository, including file names, file size, type (file or directory), and download URLs.")
-def list_repo_contents(owner: str = Path(..., description="GitHub username or organization"), 
-                       repo: str = Path(..., description="Repository name"), 
-                       path: Optional[str] = Path("", description="Optional path to a specific directory or file.")):
-    """
-    List the contents of a repository, such as file names, file sizes, and download URLs for files. You can optionally specify a path to retrieve contents of a specific directory or file.
-    """
-    endpoint = f"repos/{owner}/{repo}/contents/{path}"
-    return github_request(endpoint)
-
-# 3. Get File Content
-@app.get("/repo/{owner}/{repo}/file/{path:path}", operation_id="get_file_content", summary="Retrieve file content",
-         description="Get the content of a specific file in the repository. The content is base64-encoded and must be decoded.")
-def get_file_content(owner: str = Path(..., description="GitHub username or organization"), 
-                     repo: str = Path(..., description="Repository name"), 
-                     path: str = Path(..., description="Path to the file in the repository.")):
-    """
-    Retrieve the content of a specific file in the repository. The content is returned as a base64-encoded string, which can be decoded to view the file.
-    """
-    endpoint = f"repos/{owner}/{repo}/contents/{path}"
-    return github_request(endpoint)
-
-# 4. Get Commit History
-@app.get("/repo/{owner}/{repo}/commits", operation_id="get_commit_history", summary="Retrieve commit history",
-         description="Get a list of commits in the repository, including the author, commit message, timestamp, and files changed in each commit.")
-def get_commit_history(owner: str = Path(..., description="GitHub username or organization"), 
-                       repo: str = Path(..., description="Repository name")):
-    """
-    Retrieve the commit history of a repository, including the author, commit message, timestamp, and files changed in each commit.
-    """
-    endpoint = f"repos/{owner}/{repo}/commits"
-    return github_request(endpoint)
-
-# 5. List Pull Requests
-@app.get("/repo/{owner}/{repo}/pulls", operation_id="list_pull_requests", summary="List pull requests",
-         description="Retrieve a list of pull requests for the repository, including title, status (open, closed, merged), author, and review status.")
-def list_pull_requests(owner: str = Path(..., description="GitHub username or organization"), 
-                       repo: str = Path(..., description="Repository name")):
-    """
-    List all pull requests for a repository, including the title, status (open, closed, or merged), author, and review status.
-    """
-    endpoint = f"repos/{owner}/{repo}/pulls"
-    return github_request(endpoint)
-
-# 6. List Issues
-@app.get("/repo/{owner}/{repo}/issues", operation_id="list_issues", summary="List issues",
-         description="Retrieve a list of issues for the repository, including title, status (open or closed), author, and assigned labels.")
-def list_issues(owner: str = Path(..., description="GitHub username or organization"), 
-                repo: str = Path(..., description="Repository name")):
-    """
-    List all issues for a repository, including the title, status (open or closed), author, and assigned labels.
-    """
-    endpoint = f"repos/{owner}/{repo}/issues"
-    return github_request(endpoint)
-
-# 7. List Branches
-@app.get("/repo/{owner}/{repo}/branches", operation_id="list_branches", summary="List repository branches",
-         description="Retrieve a list of branches in the repository, including branch name and whether the branch is protected.")
-def list_branches(owner: str = Path(..., description="GitHub username or organization"), 
-                  repo: str = Path(..., description="Repository name")):
-    """
-    List all branches in the repository, including the branch name and whether the branch is protected (i.e., cannot be directly modified).
-    """
-    endpoint = f"repos/{owner}/{repo}/branches"
-    return github_request(endpoint)
-
-# 8. Get Traffic Insights (Views and Clones)
-@app.get("/repo/{owner}/{repo}/traffic/views", operation_id="get_traffic_views", summary="Retrieve repository traffic views",
-         description="Get the number of views for the repository over a specified time period.")
-def get_repo_traffic_views(owner: str = Path(..., description="GitHub username or organization"), 
-                           repo: str = Path(..., description="Repository name")):
-    """
-    Retrieve the number of views the repository has received over a specific time period, providing insights into repository visibility and popularity.
-    """
-    endpoint = f"repos/{owner}/{repo}/traffic/views"
-    return github_request(endpoint)
-
-@app.get("/repo/{owner}/{repo}/traffic/clones", operation_id="get_traffic_clones", summary="Retrieve repository traffic clones",
-         description="Get the number of times the repository has been cloned over a specified time period.")
-def get_repo_traffic_clones(owner: str = Path(..., description="GitHub username or organization"), 
-                            repo: str = Path(..., description="Repository name")):
-    """
-    Retrieve the number of times the repository has been cloned over a specific time period,
-
- providing insights into how often the repository is replicated.
-    """
-    endpoint = f"repos/{owner}/{repo}/traffic/clones"
-    return github_request(endpoint)
-```
-
-#### **Step 3: Create a `requirements.txt` File**
-
-The `requirements.txt` file will include all the dependencies needed to run the app. Create this file:
-
-```txt
-fastapi==0.95.0
-uvicorn==0.21.1
-requests==2.31.0
-certbot==2.5.0
-python3-certbot-nginx==2.5.0
-```
-
-This file ensures that the correct versions of FastAPI, Uvicorn, Requests, and Certbot are installed.
-
-#### **Step 4: Initialize a GitHub Repository with GitHub CLI**
-
-We will now create a **GitHub repository** for the project using the **GitHub CLI (gh)**.
-
-1. Initialize a Git repository:
-
-```bash
-git init
-git add .
-git commit -m "Initial commit of FastAPI proxy app"
-```
-
-2. Create a new repository on GitHub:
-
-```bash
-gh repo create fountainai-fastapi-proxy --public --source=. --remote=origin
-```
-
-3. Push the code to GitHub:
-
-```bash
-git push -u origin main
-```
-
-Your FastAPI app is now hosted in a **GitHub repository**.
+### Step-by-Step Deployment Guide
 
 ---
 
-### **Appendix: Quick and Dirty, Secure Deployment of the FastAPI App on AWS Lightsail**
+#### Step 1: Create and Configure an AWS Lightsail Instance
 
-This appendix provides a quick guide to deploying the **FastAPI proxy app** on an **AWS Lightsail** instance, securing it with **Let's Encrypt SSL**, and configuring DNS for `proxy.fountain.coach` using **Route 53**.
-
----
-
-### **1. Launch a Lightsail Instance**
-
-1. Go to **AWS Lightsail** and click **Create instance**.
-2. Select **Linux/Unix** and choose **OS Only (Ubuntu 22.04)**.
-3. Choose the **512 MB RAM, 1 vCPU** plan (suitable for a small app).
-4. Name the instance (`fountain-proxy-server`).
-5. Click **Create instance**.
-
-#### **Step 2: Connect to the Instance**
-
-Once the instance is running, connect to it via SSH:
-
-```bash
-ssh ubuntu@<instance-public-ip>
-```
-
-Replace `<instance-public-ip>` with the public IP of your instance, available in the Lightsail console.
+1. **Log in to AWS Lightsail** and create a new instance:
+   - **Platform**: Linux/Unix.
+   - **Operating System**: Ubuntu 22.04 LTS.
+   - **Instance plan**: Start with a plan that suits your needs (512MB RAM should be sufficient).
+2. **Name your instance** and take note of the **public IP address**.
 
 ---
 
-### **2. Set Up the FastAPI App**
+#### Step 2: DNS Configuration with AWS Route 53
 
-#### **Step 1: Update the Server and Install Necessary Packages**
+Since AWS is the registrar for **fountain.coach**, use **AWS Route 53** for DNS management.
 
-Update the server and install the required packages:
-
-```bash
-sudo apt update
-sudo apt upgrade -y
-sudo apt install python3-pip python3-dev nginx git
-```
-
-#### **Step 2: Clone the FastAPI App from GitHub**
-
-Clone the **FastAPI app** that we pushed to GitHub:
-
-```bash
-git clone https://github.com/yourusername/fountainai-fastapi-proxy.git
-cd fountainai-fastapi-proxy
-```
-
-#### **Step 3: Create a Virtual Environment and Install Dependencies**
-
-Create a Python virtual environment and install the dependencies listed in the `requirements.txt`:
-
-```bash
-sudo pip3 install virtualenv
-virtualenv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-#### **Step 4: Test the FastAPI App**
-
-Run the app using **Uvicorn**:
-
-```bash
-uvicorn main:app --host 0.0.0.0 --port 8000
-```
-
-Visit `http://<instance-public-ip>:8000` to ensure the app is running.
+1. **Access Route 53** and ensure a **Hosted Zone** exists for **fountain.coach**.
+2. **Create an A Record**:
+   - **Name**: Set this to `proxy.fountain.coach`.
+   - **Value**: Enter the **public IP address** of your Lightsail instance.
+3. Use tools like **dig** or **nslookup** to verify DNS propagation.
 
 ---
 
-### **3. Set Up NGINX as a Reverse Proxy**
+#### Step 3: Networking and Firewall Configuration on Lightsail
 
-#### **Step 1: Install and Configure NGINX**
-
-1. Install **NGINX**:
-
-```bash
-sudo apt install nginx
-```
-
-2. Create an NGINX configuration file:
-
-```bash
-sudo nano /etc/nginx/sites-available/fountain_proxy
-```
-
-Add the following configuration (replace `proxy.fountain.coach` with your domain):
-
-```nginx
-server {
-    server_name proxy.fountain.coach;
-
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    listen 80;
-}
-```
-
-3. Enable the NGINX configuration:
-
-```bash
-sudo ln -s /etc/nginx/sites-available/fountain_proxy /etc/nginx/sites-enabled/
-```
-
-4. Restart NGINX:
-
-```bash
-sudo systemctl restart nginx
-```
+1. In the **Networking tab** of your Lightsail instance, add the following **firewall rules**:
+   - **Port 80** for HTTP traffic.
+   - **Port 443** for HTTPS traffic.
+   - **Port 22** for SSH, enabling secure access to your instance.
+2. **Save the firewall settings** and verify that your instance can be accessed via HTTP and HTTPS.
 
 ---
 
-### **4. Secure the App with Let's Encrypt SSL**
+#### Step 4: SSH into the Lightsail Instance Using the AWS-Provided Shell
 
-#### **Step 1: Install Certbot and Obtain SSL Certificates**
+1. Use the **AWS-provided shell** to access your Lightsail instance:
+   - Open your instance in AWS Lightsail and click **Connect** using the browser-based shell.
 
-Install **Certbot** and the NGINX plugin:
+2. **Update your system**:
+   ```bash
+   sudo apt update && sudo apt upgrade -y
+   ```
 
-```bash
-sudo apt install certbot python3-certbot-nginx
-```
-
-Obtain an SSL certificate for the domain:
-
-```bash
-sudo certbot --nginx -d proxy.fountain.coach
-```
-
-#### **Step 2: Test HTTPS**
-
-Visit `https://proxy.fountain.coach` to confirm the app is running securely.
-
-#### **Step 3: Set Up Automatic Certificate Renewal**
-
-Certbot will automatically handle certificate renewal. You can manually test it by running:
-
-```bash
-sudo certbot renew --dry-run
-```
+3. **Install the necessary packages**:
+   ```bash
+   sudo apt install python3-pip python3-venv nginx git -y
+   ```
 
 ---
 
-### **5. Configure DNS in Route 53**
+#### Step 5: Set Up SSH Keys for GitHub Access
 
-#### **Step 1: Update DNS Settings in Route 53**
+1. **Generate SSH keys** on your Lightsail instance:
+   ```bash
+   ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+   ```
+   Press **Enter** to accept the default location. When prompted for a passphrase, you can leave it blank or add one.
 
-1. Go to **Route 53** and select your hosted zone for `fountain.coach`.
-2. Create a new **A Record**:
-   - **Name**: `proxy.fountain.coach`
-   - **Type**: A
-   - **Value**: The public IP of your Lightsail instance.
+2. **View and copy the public SSH key**:
+   ```bash
+   cat ~/.ssh/id_rsa.pub
+   ```
+   Copy the output of this command.
 
-#### **Step 2: Verify DNS Propagation**
+3. **Add the SSH key to GitHub**:
+   - In GitHub, go to **Settings** > **SSH and GPG keys** > **New SSH key**.
+   - Paste the copied public key into the key field and give it a name.
+   - Click **Add SSH Key**.
 
-Once DNS has propagated, visit `https://proxy.fountain.coach` to ensure the app is accessible with SSL.
-
----
-
-### **6. Automate Uvicorn with Systemd**
-
-#### **Step 1: Create a Systemd Service for Uvicorn**
-
-Create a **systemd** service file to ensure Uvicorn runs on boot:
-
-```bash
-sudo nano /etc/systemd/system/uvicorn.service
-```
-
-Add the following configuration:
-
-```ini
-[Unit]
-Description=Uvicorn instance to serve FastAPI app
-After=network.target
-
-[Service]
-User=ubuntu
-Group=www-data
-WorkingDirectory=/home/ubuntu/fountainai-fastapi-proxy
-ExecStart=/home/ubuntu/fountainai-fastapi-proxy/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
-
-[Install]
-WantedBy=multi-user.target
-```
-
-#### **Step 2: Enable and Start the Service**
-
-Enable the service:
-
-```bash
-sudo systemctl enable uvicorn
-sudo systemctl start uvicorn
-```
-
-Check the status:
-
-```bash
-sudo systemctl status uvicorn
-```
+4. **Test the SSH connection** between your Lightsail instance and GitHub:
+   ```bash
+   ssh -T git@github.com
+   ```
+   You should see a message confirming that the connection is successful.
 
 ---
 
-### **Conclusion**
+#### Step 6: Local Code Editing and Push-Pull Workflow
 
-You have now built and deployed the **FastAPI proxy app** on an **AWS Lightsail** instance, secured it with **Let's Encrypt SSL**, and configured the DNS for `proxy.fountain.coach` using **Route 53**. The app is running securely and is accessible with a valid SSL certificate.
+To avoid formatting issues with editors like **nano** in the AWS-provided shell, **edit your code locally** on your development machine. Once changes are ready:
+
+1. **Push the changes to GitHub** from your local machine:
+   ```bash
+   git add .
+   git commit -m "Update FastAPI proxy"
+   git push origin main
+   ```
+
+2. **Pull the changes on your Lightsail instance** using the AWS-provided shell:
+   ```bash
+   git pull origin main
+   ```
+
+This workflow ensures that code is edited locally, pushed to GitHub, and securely pulled onto the server.
+
+---
+
+#### Step 7: Deploy the FastAPI Proxy
+
+1. **Clone the FastAPI Proxy repository** to your Lightsail instance:
+   ```bash
+   git clone git@github.com:Contexter/fountainai-fastapi-proxy.git
+   ```
+
+2. **Set up a Python virtual environment**:
+   ```bash
+   cd fountainai-fastapi-proxy
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+3. **Install the required dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Test the FastAPI app** by running it locally:
+   ```bash
+   uvicorn main:app --host 0.0.0.0 --port 8000
+   ```
+
+   Visit `http://<instance-public-ip>:8000` to ensure the proxy is running.
+
+---
+
+#### Step 8: Configure Nginx as a Reverse Proxy
+
+To serve the FastAPI app publicly, configure **Nginx** to forward requests.
+
+1. Open the Nginx configuration file:
+   ```bash
+   sudo nano /etc/nginx/sites-available/default
+   ```
+
+2. Modify the configuration:
+   ```nginx
+   server {
+       listen 80;
+       server_name proxy.fountain.coach;
+
+       location / {
+           proxy_pass http://127.0.0.1:8000;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+       }
+   }
+   ```
+
+3. **Restart Nginx**:
+   ```bash
+   sudo systemctl restart nginx
+   ```
+
+---
+
+#### Step 9: Running the FastAPI Proxy as a Systemd Service
+
+To ensure that the FastAPI Proxy runs in the background and automatically starts on boot, configure it using **systemd**.
+
+1. Create a **systemd service file** for FastAPI:
+   ```bash
+   sudo nano /etc/systemd/system/fastapi.service
+   ```
+
+2. Add the following configuration:
+   ```ini
+   [Unit]
+   Description=FastAPI Proxy
+   After=network.target
+
+   [Service]
+   User=ubuntu
+   WorkingDirectory=/home/ubuntu/fountainai-fastapi-proxy
+   Environment="PATH=/home/ubuntu/fountainai-fastapi-proxy/venv/bin"
+   ExecStart=/home/ubuntu/fountainai-fastapi-proxy/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+3. **Reload systemd**:
+   ```bash
+   sudo systemctl daemon-reload
+   ```
+
+4. **Start and enable the service**:
+   ```bash
+   sudo systemctl start fastapi
+   sudo systemctl enable fastapi
+   ```
+
+---
+
+#### Step 10: Securing the Proxy with SSL
+
+1. Install **Certbot**:
+   ```bash
+   sudo apt install certbot python3-certbot-nginx -y
+   ```
+
+2. Obtain an SSL certificate for your domain:
+   ```bash
+   sudo certbot --nginx -d proxy.fountain.coach
+   ```
+
+3. **Restart Nginx** to apply SSL:
+   ```bash
+   sudo systemctl restart nginx
+   ```
+
+---
+
+### Conclusion: A Key Component in the Feedback Loop
+
+By deploying the **FastAPI Proxy**, you enable the custom GPT model to securely interact with the FountainAI GitHub repository, continuing the feedback loop introduced in **Chapter 10**. This deployment provides the platform with real-time access to repository data and ensures secure, scalable operations.
+
+**[Deployed Proxy Server](https://proxy.fountain.coach/docs)**  
+**[FastAPI Proxy GitHub Repository](https://github.com/Contexter/fountainai-fastapi-proxy)**
+
+---
+
+Let me know if this version fits your expectations!
