@@ -59,5 +59,5 @@ At the core of **FountainAI** is **OpenSearch**, a distributed search and analyt
 
 ### Additional Reference:
 
-- [Analysis and Continuity Improvement Proposal for the FountainAI-Book](./chapters/analysis-continuity-improvement-proposal.md)
+- [Analysis and Continuity Improvement Proposal for the FountainAI-Book](./chapters/Analysis and Continuity Improvement Proposal for the FountainAI-Book.md)
 
