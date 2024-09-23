@@ -56,6 +56,7 @@ At the core of **FountainAI** is **OpenSearch**, a distributed search and analyt
 - [Chapter 12: Demonstrating Automated Book Revision with FountainAI](chapters/chapter12.md)
 - [Chapter 13: Creating Lean Microservices](chapters/chapter13.md)
 - [Chapter 14: Setting Up a Control Machine for Ansible Using Amazon Lightsail](chapters/chapter14.md)
+- [Chapter 15: From REST API to GraphQL – Efficient Pagination and Date Filtering with FastAPI](chapters/chapter15.md)
 
 ### Additional Reference:
 
