@@ -1,4 +1,3 @@
-
 # FountainAI
 
 > **Building a Scalable, AI-Driven Storytelling Platform**
@@ -25,7 +24,8 @@ This approach is crucial to maintain the **integrity** and **scalability** of th
 ### The Development Process:
 FountainAI’s development relies on **modular microservices** and idempotent shell scripts to manage infrastructure components like **Kong (DB-less)**, **Docker-based services**, and **OpenSearch**. These services work together to maintain a scalable and adaptable platform, ensuring that as FountainAI grows, it remains stable and transparent.
 
-For more technical details on how this approach is implemented, see the [complete paper on the Manual-First Approach](./chapters/Paper_ A Manual-First Approach to Infrastructure Configuration Management with AWS Lightsail, Kong, Docker, and OpenSearch.md).
+This philosophy is put into practice through the **Manual-First Approach to Infrastructure Configuration Management**, a detailed plan that outlines how infrastructure is managed manually while ensuring consistency and reliability. For the full implementation, see the paper here:  
+[Paper: A Manual-First Approach to Infrastructure Configuration Management with AWS Lightsail, Kong, Docker, and OpenSearch](./chapters/Paper_%20A%20Manual-First%20Approach%20to%20Infrastructure%20Configuration%20Management%20with%20AWS%20Lightsail,%20Kong,%20Docker,%20and%20OpenSearch.md)
 
 ## FountainAI Microservices and APIs
 
@@ -61,7 +61,7 @@ The **FountainAI Book** is an evolving documentation of the platform's developme
 
 ### A Fully Automated Book Review
 
-As of today, the **FountainAI Book** also stands as a remarkable case study in itself—it includes the first-ever **fully automated book review**, created with the very precursor of FountainAI. This automated review lays out a detailed plan to rewrite the book, offering a glimpse into how AI-driven processes can assist in refining and revising complex documentation. This achievement showcases the system’s capabilities in automating intricate tasks like book reviews, using the same methods that underpin FountainAI’s storytelling functionalities.
+As of today, the **FountainAI Book** also stands as a remarkable case study in itself—it includes the, to my experience, first-ever **fully automated book review**, created with the very precursor of FountainAI. This automated review lays out a detailed plan to rewrite the book, offering a glimpse into how AI-driven processes can assist in refining and revising complex documentation. This achievement showcases the system’s capabilities in automating intricate tasks like book reviews, using the same methods that underpin FountainAI’s storytelling functionalities.
 
 For more on the refactoring plan and the automated book review, see the detailed plan here:  
 [Refactor the FountainAI Book](./chapters/Refactor%20the%20FountainAI%20Book.md)
