@@ -421,4 +421,4 @@ initialize_repository "$1"
 
 ---
 
-This paper, including the appendix, outlines your **manual-first, FountainAI-compliant** approach to managing infrastructure configuration with GitHub and AWS Lightsail. Let me know if you need further assistance!
+This paper, including the appendix, outlines your **manual-first, FountainAI-compliant** approach to managing infrastructure configuration with GitHub and AWS Lightsail. 
