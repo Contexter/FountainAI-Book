@@ -70,28 +70,27 @@ delete_repo() {
 backup_and_delete_repo() {
     local repo_name="$1"
     local github_user="$2"
-    local backup_repo_name="${repo_name}-backup-$(date +%Y-%m-%d)"
+    local backup_repo_name="${repo_name}-backup-$(date +%Y-%m-%d-%H-%M-%S)"
     local temp_dir="${repo_name}_temp"
 
     echo "Creating backup repository $github_user/$backup_repo_name..."
     gh repo create "$github_user/$backup_repo_name" --public --confirm
 
-    echo "Cloning existing repository..."
+    echo "Cloning existing repository into a temporary directory..."
     
-    # Check if the temp directory exists, if yes, remove it
+    # Ensure the temp directory doesn't exist
     if [ -d "$temp_dir" ]; then
         rm -rf "$temp_dir"
     fi
 
-    # Clone into a temp directory
+    # Clone the repository using gh into the temp directory
     gh repo clone "$github_user/$repo_name" "$temp_dir"
     cd "$temp_dir" || exit 1
 
-    echo "Pushing existing content to backup repository..."
-    git remote add backup "https://github.com/$github_user/$backup_repo_name.git"
+    echo "Pushing existing content to backup repository using gh..."
     
-    # Use gh to push the changes to avoid auth prompt
-    gh repo sync backup --force
+    # Push content to the backup repository with gh
+    gh repo sync "$github_user/$backup_repo_name"
 
     cd ..
     rm -rf "$temp_dir"
@@ -304,10 +303,9 @@ main() {
     # Step 6: Initialize the repository structure
     initialize_repository "$(pwd)"
 
-    # Step 7: Stage, commit, and push all changes
-    git add .
-    git commit -m "Initial repository setup according to FountainAI norms"
-    git push origin main
+    # Step 7: Commit and push all changes using gh
+    echo "Committing and pushing changes using gh..."
+    gh repo sync
 }
 
 # Execute the main process
