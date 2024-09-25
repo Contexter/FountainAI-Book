@@ -63,7 +63,7 @@ delete_repo() {
     local github_user="$2"
     
     echo "Deleting repository $github_user/$repo_name..."
-    gh repo delete "$github_user/$repo_name" --confirm
+    gh repo delete "$github_user/$repo_name" --yes
 }
 
 # Function to backup the existing repository and then delete it
@@ -74,7 +74,7 @@ backup_and_delete_repo() {
     local temp_dir="${repo_name}_temp"
 
     echo "Creating backup repository $github_user/$backup_repo_name..."
-    gh repo create "$github_user/$backup_repo_name" --public --confirm
+    gh repo create "$github_user/$backup_repo_name" --public --yes
 
     echo "Cloning existing repository into a temporary directory..."
     
@@ -105,17 +105,25 @@ create_repo() {
     local github_user="$2"
 
     echo "Creating GitHub repository $github_user/$repo_name..."
-    gh repo create "$github_user/$repo_name" --public --confirm
+    gh repo create "$github_user/$repo_name" --public --yes
 }
 
 # Clone the newly created repository
 clone_repo() {
     local repo_name="$1"
     local github_user="$2"
+    local base_dir="$repo_name"
 
     echo "Cloning the repository $github_user/$repo_name..."
-    gh repo clone "$github_user/$repo_name"
-    cd "$repo_name" || exit 1
+    
+    # If the base directory exists, delete it
+    if [ -d "$base_dir" ]; then
+        rm -rf "$base_dir"
+    fi
+
+    # Clone the repository into the base directory
+    gh repo clone "$github_user/$repo_name" "$base_dir"
+    cd "$base_dir" || exit 1
 }
 
 # Set up the base directory for the repository
@@ -303,9 +311,13 @@ main() {
     # Step 6: Initialize the repository structure
     initialize_repository "$(pwd)"
 
-    # Step 7: Commit and push all changes using gh
+    # Step 7: Set the default remote repository for future gh commands
+    echo "Setting the default remote repository..."
+    gh repo set-default "$github_user/$repo_name"
+
+    # Step 8: Commit and push all changes using gh
     echo "Committing and pushing changes using gh..."
-    gh repo sync
+    gh repo sync --force
 }
 
 # Execute the main process
