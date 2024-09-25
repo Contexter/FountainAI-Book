@@ -158,7 +158,7 @@ The repository will be **automatically created under the authenticated GitHub us
 Users must authenticate with GitHub CLI (`gh`) to run the script. **The script will create the repository under the GitHub account of the authenticated user**. Here's how to ensure proper setup:
 
 1. **Install GitHub CLI (`gh`)**:
-   - If `gh` is not already installed, follow the official instructions [here](https://cli.github.com/manual/installation).
+   - If `gh` is not already installed, follow the official instructions [here](https://cli.github.com/manual/).
    
    Example for Ubuntu:
    ```bash
