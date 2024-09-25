@@ -63,7 +63,7 @@ delete_repo() {
     local github_user="$2"
     
     echo "Deleting repository $github_user/$repo_name..."
-    gh repo delete "$github_user/$repo_name" --yes
+    gh repo delete "$github_user/$repo_name" --confirm
 }
 
 # Function to backup the existing repository and then delete it
@@ -74,7 +74,7 @@ backup_and_delete_repo() {
     local temp_dir="${repo_name}_temp"
 
     echo "Creating backup repository $github_user/$backup_repo_name..."
-    gh repo create "$github_user/$backup_repo_name" --public --yes
+    gh repo create "$github_user/$backup_repo_name" --public --confirm
 
     echo "Cloning existing repository into a temporary directory..."
     
@@ -105,7 +105,7 @@ create_repo() {
     local github_user="$2"
 
     echo "Creating GitHub repository $github_user/$repo_name..."
-    gh repo create "$github_user/$repo_name" --public --yes
+    gh repo create "$github_user/$repo_name" --public --confirm
 }
 
 # Clone the newly created repository
@@ -210,7 +210,7 @@ create_config_files() {
         ["docker/docker-compose.yml"]="version: '3'\nservices:\n  app:\n    image: your-app-image\n    ports:\n      - \"8000:8000\""
     )
 
-    for file in "${!configs[@]}"; do
+    for file in "${!configs[@]}"]; do
         local config_file="$configs_dir/$file"
         if [ ! -f "$config_file" ]; then
             echo -e "${configs[$file]}" > "$config_file"
