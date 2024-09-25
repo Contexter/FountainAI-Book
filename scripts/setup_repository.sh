@@ -283,6 +283,29 @@ create_readme() {
     echo "README.md created from the paper."
 }
 
+# Function to initialize git, create initial commit, and push to remote
+initialize_git_and_push() {
+    local base_dir="$1"
+    
+    cd "$base_dir" || exit 1
+
+    echo "Initializing Git repository..."
+    git init
+    
+    echo "Staging all files..."
+    git add .
+    
+    echo "Creating initial commit..."
+    git commit -m "Initial repository setup according to FountainAI norms"
+    
+    echo "Setting remote origin..."
+    git remote add origin "https://github.com/$github_user/$repo_name.git"
+    
+    echo "Creating main branch and pushing changes..."
+    git branch -M main
+    git push -u origin main
+}
+
 # Initialize the repository structure and content
 initialize_repository() {
     local repo_dir="$1"
@@ -324,9 +347,9 @@ main() {
     echo "Setting the default remote repository..."
     gh repo set-default "$github_user/$repo_name"
 
-    # Step 8: Commit and push all changes using gh
-    echo "Committing and pushing changes using gh..."
-    gh repo sync --force
+    # Step 8: Initialize Git, create initial commit, and push changes
+    echo "Committing and pushing changes using git..."
+    initialize_git_and_push "$(pwd)"
 }
 
 # Execute the main process
