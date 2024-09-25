@@ -122,7 +122,7 @@ clone_repo() {
     echo "Cloning the repository $github_user/$repo_name..."
     
     # If the base directory exists, delete it
-    if [ -d "$base_dir" ]; then
+    if [ -d "$base_dir" ];then
         rm -rf "$base_dir"
     fi
 
