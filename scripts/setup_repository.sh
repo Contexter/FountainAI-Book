@@ -71,19 +71,30 @@ backup_and_delete_repo() {
     local repo_name="$1"
     local github_user="$2"
     local backup_repo_name="${repo_name}-backup-$(date +%Y-%m-%d)"
+    local temp_dir="${repo_name}_temp"
 
     echo "Creating backup repository $github_user/$backup_repo_name..."
     gh repo create "$github_user/$backup_repo_name" --public --confirm
 
     echo "Cloning existing repository..."
-    gh repo clone "$github_user/$repo_name"
-    cd "$repo_name" || exit 1
+    
+    # Check if the temp directory exists, if yes, remove it
+    if [ -d "$temp_dir" ]; then
+        rm -rf "$temp_dir"
+    fi
+
+    # Clone into a temp directory
+    gh repo clone "$github_user/$repo_name" "$temp_dir"
+    cd "$temp_dir" || exit 1
 
     echo "Pushing existing content to backup repository..."
     git remote add backup "https://github.com/$github_user/$backup_repo_name.git"
-    git push backup main
+    
+    # Use gh to push the changes to avoid auth prompt
+    gh repo sync backup --force
 
     cd ..
+    rm -rf "$temp_dir"
 
     echo "Backup created successfully. Deleting the original repository..."
     delete_repo "$repo_name" "$github_user"
