@@ -63,7 +63,7 @@ delete_repo() {
     local github_user="$2"
     
     echo "Deleting repository $github_user/$repo_name..."
-    gh repo delete "$github_user/$repo_name" --confirm
+    gh repo delete "$github_user/$repo_name" --yes
 }
 
 # Function to backup the existing repository and then delete it
@@ -122,7 +122,7 @@ clone_repo() {
     echo "Cloning the repository $github_user/$repo_name..."
     
     # If the base directory exists, delete it
-    if [ -d "$base_dir" ];then
+    if [ -d "$base_dir" ]; then
         rm -rf "$base_dir"
     fi
 
@@ -296,7 +296,7 @@ set_or_update_remote_origin() {
     fi
 }
 
-# Function to initialize git, create initial commit, and push to remote
+# Function to initialize git, create initial commit, and push to remote using gh
 initialize_git_and_push() {
     local base_dir="$1"
     
@@ -314,9 +314,11 @@ initialize_git_and_push() {
     echo "Setting remote origin..."
     set_or_update_remote_origin "$github_user" "$repo_name"
     
-    echo "Creating main branch and pushing changes..."
+    echo "Creating main branch..."
     git branch -M main
-    git push -u origin main
+
+    echo "Pushing changes using gh..."
+    gh repo sync --force
 }
 
 # Initialize the repository structure and content
@@ -360,8 +362,8 @@ main() {
     echo "Setting the default remote repository..."
     gh repo set-default "$github_user/$repo_name"
 
-    # Step 8: Initialize Git, create initial commit, and push changes
-    echo "Committing and pushing changes using git..."
+    # Step 8: Initialize Git, create initial commit, and push changes using gh
+    echo "Committing and pushing changes using gh..."
     initialize_git_and_push "$(pwd)"
 }
 
