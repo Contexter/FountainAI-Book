@@ -15,13 +15,13 @@ check_gh_auth() {
 # Function to get the authenticated GitHub user
 get_github_user() {
     local user
-    user=$(gh api user --jq '.login')
+    user=$(gh api user --jq '.login')  # Retrieve only the username
     if [ -z "$user" ]; then
         echo "Error: Unable to retrieve authenticated GitHub user."
         exit 1
     fi
-    echo "Authenticated GitHub user: $user"
-    echo "$user"  # This ensures only the username is returned
+    echo "Authenticated GitHub user: $user"  # Display this to the user
+    echo "$user"  # Return only the username value
 }
 
 # Function to check if the repository exists and prompt user action
