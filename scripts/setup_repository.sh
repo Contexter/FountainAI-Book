@@ -105,7 +105,12 @@ create_repo() {
     local github_user="$2"
 
     echo "Creating GitHub repository $github_user/$repo_name..."
-    gh repo create "$github_user/$repo_name" --public --confirm
+    if gh repo create "$github_user/$repo_name" --public --confirm; then
+        echo "Repository $github_user/$repo_name created successfully."
+    else
+        echo "Error: Failed to create repository $github_user/$repo_name."
+        exit 1
+    fi
 }
 
 # Clone the newly created repository
@@ -122,8 +127,12 @@ clone_repo() {
     fi
 
     # Clone the repository into the base directory
-    gh repo clone "$github_user/$repo_name" "$base_dir"
-    cd "$base_dir" || exit 1
+    if gh repo clone "$github_user/$repo_name" "$base_dir"; then
+        cd "$base_dir" || exit 1
+    else
+        echo "Error: Failed to clone the repository $github_user/$repo_name."
+        exit 1
+    fi
 }
 
 # Set up the base directory for the repository
@@ -210,7 +219,7 @@ create_config_files() {
         ["docker/docker-compose.yml"]="version: '3'\nservices:\n  app:\n    image: your-app-image\n    ports:\n      - \"8000:8000\""
     )
 
-    for file in "${!configs[@]}"]; do
+    for file in "${!configs[@]}"; do
         local config_file="$configs_dir/$file"
         if [ ! -f "$config_file" ]; then
             echo -e "${configs[$file]}" > "$config_file"
