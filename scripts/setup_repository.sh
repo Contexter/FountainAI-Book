@@ -122,7 +122,7 @@ clone_repo() {
     echo "Cloning the repository $github_user/$repo_name..."
     
     # If the base directory exists, delete it
-    if [ -d "$base_dir" ];then
+    if [ -d "$base_dir" ]; then
         rm -rf "$base_dir"
     fi
 
@@ -283,41 +283,13 @@ create_readme() {
     echo "README.md created from the paper."
 }
 
-# Function to set or update the remote origin
-set_or_update_remote_origin() {
-    local github_user="$1"
-    local repo_name="$2"
-    if git remote get-url origin > /dev/null 2>&1; then
-        echo "Remote origin already exists. Updating remote origin..."
-        git remote set-url origin "https://github.com/$github_user/$repo_name.git"
-    else
-        echo "Setting remote origin..."
-        git remote add origin "https://github.com/$github_user/$repo_name.git"
-    fi
-}
-
-# Function to initialize git, create initial commit, and push to remote using gh
-initialize_git_and_push() {
+# Function to sync changes using gh
+sync_changes() {
     local base_dir="$1"
     
     cd "$base_dir" || exit 1
 
     echo "Initializing Git repository..."
-    git init
-    
-    echo "Staging all files..."
-    git add .
-    
-    echo "Creating initial commit..."
-    git commit -m "Initial repository setup according to FountainAI norms"
-    
-    echo "Setting remote origin..."
-    set_or_update_remote_origin "$github_user" "$repo_name"
-    
-    echo "Creating main branch..."
-    git branch -M main
-
-    echo "Pushing changes using gh..."
     gh repo sync --force
 }
 
@@ -362,9 +334,9 @@ main() {
     echo "Setting the default remote repository..."
     gh repo set-default "$github_user/$repo_name"
 
-    # Step 8: Initialize Git, create initial commit, and push changes using gh
+    # Step 8: Sync changes using gh
     echo "Committing and pushing changes using gh..."
-    initialize_git_and_push "$(pwd)"
+    sync_changes "$(pwd)"
 }
 
 # Execute the main process
