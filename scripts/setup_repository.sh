@@ -289,7 +289,7 @@ sync_changes() {
     
     cd "$base_dir" || exit 1
 
-    echo "Initializing Git repository..."
+    echo "Staging all files and committing..."
     gh repo sync --force
 }
 
