@@ -20,8 +20,7 @@ get_github_user() {
         echo "Error: Unable to retrieve authenticated GitHub user."
         exit 1
     fi
-    echo "Authenticated GitHub user: $user"  # Display this to the user
-    echo "$user"  # Return only the username value
+    echo "$user"  # Return only the username value, no additional text
 }
 
 # Function to check if the repository exists and prompt user action
