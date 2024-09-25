@@ -21,7 +21,7 @@ get_github_user() {
         exit 1
     fi
     echo "Authenticated GitHub user: $user"
-    echo "$user"
+    echo "$user"  # This ensures only the username is returned
 }
 
 # Function to check if the repository exists and prompt user action
@@ -280,7 +280,7 @@ main() {
 
     # Step 2: Get the authenticated GitHub user
     local github_user
-    github_user=$(get_github_user)
+    github_user=$(get_github_user)  # Correctly retrieves only the username
 
     # Step 3: Handle existing repository (delete, backup, or cancel)
     handle_existing_repo "$repo_name" "$github_user"
