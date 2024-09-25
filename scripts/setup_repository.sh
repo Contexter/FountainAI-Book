@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# FountainAI Norm: Automating the repository setup with GitHub authentication and manual control.
-
 # Function to check GitHub CLI authentication
 check_gh_auth() {
     if ! gh auth status > /dev/null 2>&1; then
@@ -14,16 +12,15 @@ check_gh_auth() {
 
 # Function to get the authenticated GitHub user
 get_github_user() {
-    local user
-    user=$(gh api user --jq '.login')  # Retrieve only the username
-    if [ -z "$user" ]; then
+    gh_user=$(gh api user --jq '.login')
+    if [ -z "$gh_user" ]; then
         echo "Error: Unable to retrieve authenticated GitHub user."
         exit 1
     fi
-    echo "$user"  # Return only the username value, no additional text
+    echo "$gh_user"
 }
 
-# Function to check if the repository exists and prompt user action
+# Function to handle an existing repository
 handle_existing_repo() {
     local repo_name="$1"
     local github_user="$2"
@@ -283,13 +280,13 @@ create_readme() {
     echo "README.md created from the paper."
 }
 
-# Function to sync changes using gh
+# Function to commit and push changes using gh
 sync_changes() {
     local base_dir="$1"
-    
+
     cd "$base_dir" || exit 1
 
-    echo "Staging all files and committing..."
+    echo "Staging all files and committing changes..."
     gh repo sync --force
 }
 
@@ -316,7 +313,7 @@ main() {
 
     # Step 2: Get the authenticated GitHub user
     local github_user
-    github_user=$(get_github_user)  # Correctly retrieves only the username
+    github_user=$(get_github_user)
 
     # Step 3: Handle existing repository (delete, backup, or cancel)
     handle_existing_repo "$repo_name" "$github_user"
