@@ -1,12 +1,112 @@
 #!/bin/bash
 
-# Function to create the repository using gh
+# FountainAI Norm: Automating the repository setup with GitHub authentication and manual control.
+
+# Function to check GitHub CLI authentication
+check_gh_auth() {
+    if ! gh auth status > /dev/null 2>&1; then
+        echo "Error: You are not authenticated with GitHub CLI (gh). Please run 'gh auth login' to authenticate."
+        exit 1
+    else
+        echo "GitHub authentication confirmed."
+    fi
+}
+
+# Function to get the authenticated GitHub user
+get_github_user() {
+    local user
+    user=$(gh api user --jq '.login')
+    if [ -z "$user" ]; then
+        echo "Error: Unable to retrieve authenticated GitHub user."
+        exit 1
+    fi
+    echo "Authenticated GitHub user: $user"
+    echo "$user"
+}
+
+# Function to check if the repository exists and prompt user action
+handle_existing_repo() {
+    local repo_name="$1"
+    local github_user="$2"
+
+    if gh repo view "$github_user/$repo_name" > /dev/null 2>&1; then
+        echo "Warning: The repository $github_user/$repo_name already exists."
+        echo "Options:"
+        echo "1. Delete the existing repository and start fresh."
+        echo "2. Backup the repository before creating a new one."
+        echo "3. Cancel the operation."
+        read -p "Choose an option (1/2/3): " choice
+
+        case $choice in
+            1)
+                delete_repo "$repo_name" "$github_user"
+                ;;
+            2)
+                backup_and_delete_repo "$repo_name" "$github_user"
+                ;;
+            3)
+                echo "Operation canceled."
+                exit 0
+                ;;
+            *)
+                echo "Invalid option. Operation canceled."
+                exit 1
+                ;;
+        esac
+    else
+        echo "Repository $github_user/$repo_name does not exist. Proceeding to create a new one."
+    fi
+}
+
+# Function to delete the existing repository
+delete_repo() {
+    local repo_name="$1"
+    local github_user="$2"
+    
+    echo "Deleting repository $github_user/$repo_name..."
+    gh repo delete "$github_user/$repo_name" --confirm
+}
+
+# Function to backup the existing repository and then delete it
+backup_and_delete_repo() {
+    local repo_name="$1"
+    local github_user="$2"
+    local backup_repo_name="${repo_name}-backup-$(date +%Y-%m-%d)"
+
+    echo "Creating backup repository $github_user/$backup_repo_name..."
+    gh repo create "$github_user/$backup_repo_name" --public --confirm
+
+    echo "Cloning existing repository..."
+    gh repo clone "$github_user/$repo_name"
+    cd "$repo_name" || exit 1
+
+    echo "Pushing existing content to backup repository..."
+    git remote add backup "https://github.com/$github_user/$backup_repo_name.git"
+    git push backup main
+
+    cd ..
+
+    echo "Backup created successfully. Deleting the original repository..."
+    delete_repo "$repo_name" "$github_user"
+}
+
+# Function to create the new repository under the authenticated user account
 create_repo() {
     local repo_name="$1"
     local github_user="$2"
 
     echo "Creating GitHub repository $github_user/$repo_name..."
     gh repo create "$github_user/$repo_name" --public --confirm
+}
+
+# Clone the newly created repository
+clone_repo() {
+    local repo_name="$1"
+    local github_user="$2"
+
+    echo "Cloning the repository $github_user/$repo_name..."
+    gh repo clone "$github_user/$repo_name"
+    cd "$repo_name" || exit 1
 }
 
 # Set up the base directory for the repository
@@ -95,7 +195,7 @@ create_config_files() {
 
     for file in "${!configs[@]}"; do
         local config_file="$configs_dir/$file"
-        if [ ! -f "$config_file\" ]; then
+        if [ ! -f "$config_file" ]; then
             echo -e "${configs[$file]}" > "$config_file"
             echo "Configuration file $file created."
         else
@@ -164,7 +264,7 @@ initialize_repository() {
     create_directory_structure "$repo_dir"
     create_github_actions "$repo_dir"
     create_shell_scripts "$repo_dir"
-    create_config_files("$repo_dir")
+    create_config_files "$repo_dir"
     create_docs "$repo_dir"
     create_gitignore "$repo_dir"
     create_readme "$repo_dir"
@@ -174,20 +274,27 @@ initialize_repository() {
 # Main process
 main() {
     local repo_name="fountainai-setup"
-    local github_user="Contexter"
-    
-    # Step 1: Create the repository using gh
+
+    # Step 1: Check if the user is authenticated with GitHub
+    check_gh_auth
+
+    # Step 2: Get the authenticated GitHub user
+    local github_user
+    github_user=$(get_github_user)
+
+    # Step 3: Handle existing repository (delete, backup, or cancel)
+    handle_existing_repo "$repo_name" "$github_user"
+
+    # Step 4: Create the new repository using GitHub CLI
     create_repo "$repo_name" "$github_user"
 
-    # Step 2: Clone the repository and set up the directory
-    echo "Cloning the repository..."
-    gh repo clone "$github_user/$repo_name"
-    cd "$repo_name" || exit
+    # Step 5: Clone the repository
+    clone_repo "$repo_name" "$github_user"
 
-    # Step 3: Initialize the repository structure
+    # Step 6: Initialize the repository structure
     initialize_repository "$(pwd)"
 
-    # Step 4: Stage, commit, and push all changes
+    # Step 7: Stage, commit, and push all changes
     git add .
     git commit -m "Initial repository setup according to FountainAI norms"
     git push origin main
