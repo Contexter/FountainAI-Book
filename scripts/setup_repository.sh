@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Function to create the repository using gh
+create_repo() {
+    local repo_name="$1"
+    local github_user="$2"
+
+    echo "Creating GitHub repository $github_user/$repo_name..."
+    gh repo create "$github_user/$repo_name" --public --confirm
+}
+
 # Set up the base directory for the repository
 setup_base_directory() {
     local base_dir="$1"
@@ -58,9 +67,9 @@ create_github_actions() {
 create_shell_scripts() {
     local scripts_dir="$1/scripts"
     declare -A scripts=(
-        ["configure_kong.sh"]="#!/bin/bash\n\n# Ensure Kong configuration is only created if it doesn't exist\ncreate_kong_config() {\n    local config_file=\"/etc/kong/kong.yml\"\n\n    if [ ! -f \"\$config_file\" ]; then\n        echo \"Creating Kong configuration.\"\n        cat <<EOL > \"\$config_file\"\n_format_version: \"3.0\"\nservices:\n  - name: api_service\n    url: http://backend-service\n    routes:\n      - name: api_route\n        paths:\n          - /api\nEOL\n    else\n        echo \"Kong configuration already exists.\"\n    fi\n}\n\ncreate_kong_config"
-        ["configure_opensearch.sh"]="#!/bin/bash\n\n# Ensure OpenSearch configuration is only created if it doesn't exist\ncreate_opensearch_config() {\n    local config_file=\"/etc/opensearch/opensearch.yml\"\n\n    if [ ! -f \"\$config_file\" ]; then\n        echo \"Creating OpenSearch configuration.\"\n        cat <<EOL > \"\$config_file\"\n# OpenSearch configuration\nEOL\n    else\n        echo \"OpenSearch configuration already exists.\"\n    fi\n}\n\ncreate_opensearch_config"
-        ["configure_docker.sh"]="#!/bin/bash\n\n# Ensure Docker configuration is only created if it doesn't exist\ncreate_docker_config() {\n    local config_file=\"./docker-compose.yml\"\n\n    if [ ! -f \"\$config_file\" ]; then\n        echo \"Creating Docker Compose configuration.\"\n        cat <<EOL > \"\$config_file\"\nversion: '3'\nservices:\n  app:\n    image: your-app-image\n    ports:\n      - \"8000:8000\"\nEOL\n    else\n        echo \"Docker Compose configuration already exists.\"\n    fi\n}\n\ncreate_docker_config"
+        ["configure_kong.sh"]="#!/bin/bash\n\n# Ensure Kong configuration is only created if it doesn't exist\ncreate_kong_config() {\n    local config_file=\"/etc/kong/kong.yml\"\n\n    if [ ! -f \"$config_file\" ]; then\n        echo \"Creating Kong configuration.\"\n        cat <<EOL > \"$config_file\"\n_format_version: \"3.0\"\nservices:\n  - name: api_service\n    url: http://backend-service\n    routes:\n      - name: api_route\n        paths:\n          - /api\nEOL\n    else\n        echo \"Kong configuration already exists.\"\n    fi\n}\n\ncreate_kong_config"
+        ["configure_opensearch.sh"]="#!/bin/bash\n\n# Ensure OpenSearch configuration is only created if it doesn't exist\ncreate_opensearch_config() {\n    local config_file=\"/etc/opensearch/opensearch.yml\"\n\n    if [ ! -f \"$config_file\" ]; then\n        echo \"Creating OpenSearch configuration.\"\n        cat <<EOL > \"$config_file\"\n# OpenSearch configuration\nEOL\n    else\n        echo \"OpenSearch configuration already exists.\"\n    fi\n}\n\ncreate_opensearch_config"
+        ["configure_docker.sh"]="#!/bin/bash\n\n# Ensure Docker configuration is only created if it doesn't exist\ncreate_docker_config() {\n    local config_file=\"./docker-compose.yml\"\n\n    if [ ! -f \"$config_file\" ]; then\n        echo \"Creating Docker Compose configuration.\"\n        cat <<EOL > \"$config_file\"\nversion: '3'\nservices:\n  app:\n    image: your-app-image\n    ports:\n      - \"8000:8000\"\nEOL\n    else\n        echo \"Docker Compose configuration already exists.\"\n    fi\n}\n\ncreate_docker_config"
     )
 
     for file in "${!scripts[@]}"; do
@@ -86,7 +95,7 @@ create_config_files() {
 
     for file in "${!configs[@]}"; do
         local config_file="$configs_dir/$file"
-        if [ ! -f "$config_file" ]; then
+        if [ ! -f "$config_file\" ]; then
             echo -e "${configs[$file]}" > "$config_file"
             echo "Configuration file $file created."
         else
@@ -115,19 +124,74 @@ create_docs() {
     done
 }
 
+# Create a .gitignore file
+create_gitignore() {
+    local base_dir="$1"
+    local gitignore_file="$base_dir/.gitignore"
+
+    if [ ! -f "$gitignore_file" ]; then
+        cat <<EOL > "$gitignore_file"
+# Ignore sensitive files
+.env
+*.secret
+*.key
+
+# Ignore generated files
+*.log
+*.bak
+*.backup
+EOL
+        echo ".gitignore file created."
+    else
+        echo ".gitignore file already exists."
+    fi
+}
+
+# Download the paper as README.md and place it in the repo
+create_readme() {
+    local base_dir="$1"
+    local readme_file="$base_dir/README.md"
+
+    # Use the content of the fetched paper as the README
+    curl -o "$readme_file" https://raw.githubusercontent.com/Contexter/FountainAI-Book/main/chapters/Paper_%20A%20Manual-First%20Approach%20to%20Infrastructure%20Configuration%20Management%20with%20AWS%20Lightsail,%20Kong,%20Docker,%20and%20OpenSearch.md
+    echo "README.md created from the paper."
+}
+
 # Initialize the repository structure and content
 initialize_repository() {
     local repo_dir="$1"
-
     setup_base_directory "$repo_dir"
     create_directory_structure "$repo_dir"
     create_github_actions "$repo_dir"
     create_shell_scripts "$repo_dir"
-    create_config_files "$repo_dir"
+    create_config_files("$repo_dir")
     create_docs "$repo_dir"
-
+    create_gitignore "$repo_dir"
+    create_readme "$repo_dir"
     echo "Repository setup completed according to the FountainAI way."
 }
 
-# Execute the repository setup
-initialize_repository "$1"
+# Main process
+main() {
+    local repo_name="fountainai-setup"
+    local github_user="Contexter"
+    
+    # Step 1: Create the repository using gh
+    create_repo "$repo_name" "$github_user"
+
+    # Step 2: Clone the repository and set up the directory
+    echo "Cloning the repository..."
+    gh repo clone "$github_user/$repo_name"
+    cd "$repo_name" || exit
+
+    # Step 3: Initialize the repository structure
+    initialize_repository "$(pwd)"
+
+    # Step 4: Stage, commit, and push all changes
+    git add .
+    git commit -m "Initial repository setup according to FountainAI norms"
+    git push origin main
+}
+
+# Execute the main process
+main
